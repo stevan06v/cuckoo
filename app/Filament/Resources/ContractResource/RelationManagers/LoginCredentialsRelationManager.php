@@ -34,8 +34,6 @@ class LoginCredentialsRelationManager extends RelationManager
         return __('messages.login_credentials.resource.name');
     }
 
-
-
     public function form(Form $form): Form
     {
         return $form

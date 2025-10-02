@@ -88,17 +88,14 @@ class ContractNoteResource extends Resource
                 ]),
 
                 Section::make(__('messages.contract_note.form.section_contract'))->schema([
+
                     Select::make('contract_id')
                         ->label(__('messages.contract_note.form.field_contract'))
+                        ->relationship('contract', 'contract.name')
                         ->required()
-                        ->options(function () {
-                            $user = Auth::user();
-                            return Contract::whereHas('classifications', function ($query) use ($user) {
-                                $query->where('user_id', $user->id);
-                            })->pluck('name', 'id');
-                        })
+                        ->searchable()
                         ->preload()
-                        ->searchable(),
+                        ->getOptionLabelFromRecordUsing(fn (Contract $record) => $record->name ?? ''),
                     FileUpload::make('attachments')
                         ->label(__('messages.contract_note.form.field_attachments'))
                         ->multiple()
@@ -108,7 +105,6 @@ class ContractNoteResource extends Resource
                         ->downloadable()
                         ->acceptedFileTypes(['application/pdf', 'image/*', 'text/plain'])
                         ->maxSize(5120)
-                        ->hint(__('messages.contract_note.form.field_attachments_hint')),
                 ]),
 
             ]);

@@ -65,6 +65,6 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->brandLogo(fn () => view('vendor.filament.components.brand'))
             ->brandLogoHeight('2rem')
-            ->favicon(asset('images/logo.ico'));
+            ->favicon(asset('images/logo.ico'))->spa();
     }
 }

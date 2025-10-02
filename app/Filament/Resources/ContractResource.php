@@ -70,7 +70,6 @@
                 'description', // Contract description
                 'priority', // Priority level of the contract
                 'due_to', // Due date of the contract
-
                 // Related customer and user details
                 'customer.company_name', // Customer company name
                 'users.name', // User (employee) name associated with the contract
@@ -198,7 +197,7 @@
 
                     Filter::make('is_not_finished')
                         ->label(__('messages.contract.table.filter_is_not_finished'))
-                        ->query(fn(Builder $query) => $query->where('is_finished', false)),
+                        ->query(fn(Builder $query) => $query->where('is_finished', false))->default(true),
 
                     Tables\Filters\Filter::make('name')
                         ->label(__('messages.contract.table.filter_name'))

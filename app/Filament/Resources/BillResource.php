@@ -161,18 +161,14 @@ class BillResource extends Resource
                 ])->collapsible()->collapsed(false),
 
                 Section::make(__('messages.bill.form.section_contract'))->schema([
+
                     Select::make('contract_classification_id')
                         ->label(__('messages.bill.form.field_contract'))
-                        ->options(function () {
-                            $user = Auth::user();
-                            return ContractClassification::where('user_id', $user->id)
-                                ->with('contract')
-                                ->get()
-                                ->pluck('contract.name', 'id');
-                        })
-                        ->preload()
-                        ->searchable()
+                        ->relationship('contractClassification', 'contract.name')
                         ->required()
+                        ->searchable()
+                        ->preload()
+                        ->getOptionLabelFromRecordUsing(fn (ContractClassification $record) => $record->contract?->name ?? '')
                 ])->columns(1)->collapsible()->collapsed(false),
 
                 Section::make(__('messages.bill.form.section_attachments'))->schema([
@@ -303,7 +299,7 @@ class BillResource extends Resource
                     ->query(fn(Builder $query) => $query->where('is_payed', true)),
                 Filter::make('is_not_payed')
                     ->label(__('messages.bill.filters.not_payed'))
-                    ->query(fn(Builder $query) => $query->where('is_payed', false)),
+                    ->query(fn(Builder $query) => $query->where('is_payed', false))->default(true),
 
                 Filter::make('is_flat_rate')
                     ->label(__('messages.bill.filters.flat_rate'))

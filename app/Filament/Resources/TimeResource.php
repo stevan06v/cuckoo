@@ -86,16 +86,11 @@ class TimeResource extends Resource
                 Section::make([
                     Select::make('contract_classification_id')
                         ->label(__('messages.time.form.field_contract_label'))
-                        ->options(function () {
-                            $user = Auth::user();
-                            return ContractClassification::where('user_id', $user->id)
-                                ->with('contract')
-                                ->get()
-                                ->pluck('contract.name', 'id');
-                        })
-                        ->preload()
-                        ->searchable()
+                        ->relationship('contractClassification', 'contract.name')
                         ->required()
+                        ->searchable()
+                        ->preload()
+                        ->getOptionLabelFromRecordUsing(fn (ContractClassification $record) => $record->contract?->name ?? '')
                 ])->columns(1)
                     ->collapsible()
                     ->collapsed(false)
@@ -111,16 +106,23 @@ class TimeResource extends Resource
                     ->sortable()
                     ->label(__('messages.time.table.date')) // Translated label
                     ->date(),
-                TextColumn::make('description')
-                    ->label(__('messages.time.table.description')) // Translated label
-                    ->markdown()
-                    ->limit(30),
+                TextColumn::make('contractClassification.contract.name')
+                    ->label(__('messages.time.table.contract_name'))
+                    ->sortable()
+                    ->label(__('messages.todo.table.contract'))
+                    ->searchable(),
+                TextColumn::make('contractClassification.contract.customer.company_name')
+                    ->label(__('messages.contract.table.filter_customer'))
+                    ->sortable()
+                    ->searchable(),
                 TextColumn::make('total_hours_worked')
                     ->sortable()
+                    ->formatStateUsing(function ($state, $record) {
+                        $hours = $record->total_hours_worked;
+                        $minutes = $record->total_minutes_worked;
+                        return "{$hours}h {$minutes}m";
+                    })
                     ->label(__('messages.time.table.total_hours'))
-                    ->sortable(),
-                TextColumn::make('total_minutes_worked')
-                    ->label(__('messages.time.table.total_minutes'))
                     ->sortable(),
                 IconColumn::make('billed')
                     ->sortable()
@@ -165,7 +167,8 @@ class TimeResource extends Resource
                 Filter::make('notBilled')
                     ->label(__('messages.time.filters.not_billed'))
                     ->visible(Auth::user()->hasPermissionTo('View Special Times Filters'))
-                    ->query(fn(Builder $query) => $query->where('billed', false)),
+                    ->query(fn(Builder $query) => $query->where('billed', false))
+                    ->default(true),
 
                 Filter::make('date')
                     ->form([
