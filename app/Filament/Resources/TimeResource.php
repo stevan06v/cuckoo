@@ -160,6 +160,26 @@ class TimeResource extends Resource
                     ->multiple()
                     ->searchable()
                     ->preload(),
+
+                SelectFilter::make('contractClassificationContractCustomer')
+                    ->relationship(
+                        'contractClassification.contract.customer',
+                        'company_name',
+                        function (Builder $query) {
+                            if (!Auth::user()->hasPermissionTo('View Special Times Filters')) {
+                                $query->whereIn(
+                                    'contracts.id',
+                                    Auth::user()
+                                        ->contractClassifications()
+                                        ->pluck('contract_id')
+                                );
+                            }
+                        }
+                    )
+                    ->label(__('messages.contract.table.filter_customer'))
+                    ->multiple()
+                    ->searchable()
+                    ->preload(),
                 Filter::make('billed')
                     ->label(__('messages.time.filters.billed'))
                     ->visible(Auth::user()->hasPermissionTo('View Special Times Filters'))
