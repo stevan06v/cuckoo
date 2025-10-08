@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Models\Customer;
 use Carbon\Carbon;
 use App\Filament\Resources\TimeResource\Pages;
 use App\Filament\Resources\TimeResource\RelationManagers;
@@ -164,18 +165,23 @@ class TimeResource extends Resource
                 SelectFilter::make('contractClassificationContractCustomer')
                     ->relationship(
                         'contractClassification.contract.customer',
-                        'company_name',
-                        function (Builder $query) {
-                            if (!Auth::user()->hasPermissionTo('View Special Times Filters')) {
-                                $query->whereIn(
-                                    'contracts.id',
-                                    Auth::user()
-                                        ->contractClassifications()
-                                        ->pluck('contract_id')
-                                );
-                            }
-                        }
+                        'company_name'
                     )
+                    ->options(function () {
+                        $query = Customer::query();
+
+                        if (!Auth::user()->hasPermissionTo('View Special Times Filters')) {
+                            $allowedContractIds = Auth::user()
+                                ->contractClassifications()
+                                ->pluck('contract_id');
+
+                            $query->whereHas('contracts', function ($q) use ($allowedContractIds) {
+                                $q->whereIn('contracts.id', $allowedContractIds);
+                            });
+                        }
+
+                        return $query->pluck('company_name', 'id');
+                    })
                     ->label(__('messages.contract.table.filter_customer'))
                     ->multiple()
                     ->searchable()
