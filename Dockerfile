@@ -31,9 +31,13 @@ RUN apk --no-cache add \
 
 WORKDIR /var/www
 
-#COPY --from=builder /var/www /var/www
-COPY --from=builder /var/www/public /var/www/public
-COPY --from=builder /var/www/vendor /var/www/vendor
+COPY entrypoint.sh /var/www/entrypoint.sh
+RUN chmod +x /var/www/entrypoint.sh
+
+COPY --from=builder /var/www /var/www
+# Optimize (ned entrypoint vergessen oba!)
+#COPY --from=builder /var/www/public /var/www/public
+#COPY --from=builder /var/www/vendor /var/www/vendor
 
 RUN addgroup -g 1000 appgroup && adduser -u 1000 -G appgroup -s /bin/sh -D appuser
 USER appuser
