@@ -1,45 +1,52 @@
-networks:
-  cuckoo_net:
-    ipam:
-      driver: default
-      config:
-        - subnet: 192.168.1.0/24
-
 services:
   app:
-    build: .
-    container_name: cuckoo
-    restart: always
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: cuckoo-app
+    container_name: cuckoo-app
+    restart: unless-stopped
     working_dir: /var/www
+    entrypoint: ./entrypoint.sh
     volumes:
-      - .:/var/www
-    ports:
-      - "8000:8000"
+      - ./:/var/www
+    networks:
+      - cuckoo-network
     depends_on:
       - db
-    environment:
-      APP_ENV: local
-      CONTAINER_ROLE: app
-      PORT: 8000
-      DB_HOST: db
-    networks:
-      cuckoo_net:
-        ipv4_address: 192.168.1.100
+    env_file:
+      - .env
 
   db:
-    image: mysql:latest
-    container_name: db-1
+    image: mysql:8.0
+    container_name: cuckoo-db
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE:-cuckoo_db}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root_password}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-db_password}
+      MYSQL_USER: ${DB_USERNAME:-db_user}
+    volumes:
+      - ./db-data:/var/lib/mysql
+    networks:
+      - cuckoo-network
     ports:
       - "3306:3306"
-    restart: always
-    environment:
-      MYSQL_DATABASE: cuckoo
-      MYSQL_ROOT_PASSWORD: root
-    volumes:
-      - "db:/var/lib/mysql"
-    networks:
-      cuckoo_net:
-        ipv4_address: 192.168.1.101
 
-volumes:
-  db:
+  web:
+    image: nginx:alpine
+    container_name: cuckoo-web
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - ./:/var/www
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf
+    networks:
+      - cuckoo-network
+    depends_on:
+      - app
+
+networks:
+  cuckoo-network:
+    driver: bridge

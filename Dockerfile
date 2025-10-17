@@ -1,24 +1,36 @@
-FROM php:8.2 as php
-
-RUN apt-get update -y
-RUN apt-get install -y unzip libpq-dev libcurl4-gnutls-dev
-RUN docker-php-ext-install pdo pdo_mysql bcmath
+FROM php:8.2-fpm AS builder
 
 RUN apt-get update && apt-get install -y \
-    libicu-dev \
-    && docker-php-ext-install intl \
-    && docker-php-ext-enable intl
+    libpng-dev libjpeg-dev libfreetype6-dev libzip-dev unzip \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install gd pdo pdo_mysql zip
 
-RUN pecl install -o -f redis \
-    && rm -rf /tmp/pear \
-    && docker-php-ext-enable redis
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 WORKDIR /var/www
-COPY . .
+COPY . /var/www
 
-RUN chmod +x docker/entrypoint.sh
+RUN composer install --no-dev --optimize-autoloader --no-interaction
 
-COPY --from=composer:2.3.5 /usr/bin/composer /usr/bin/composer
+RUN curl -sL https://deb.nodesource.com/setup_20.x | bash - \
+    && apt-get install -y nodejs \
+    && npm install --omit=dev \
+    && npm run build \
+    && rm -rf node_modules
 
-ENV PORT=8000
-ENTRYPOINT [ "docker/entrypoint.sh" ]
+FROM php:8.2-fpm-alpine
+
+RUN apk --no-cache add libpng libjpeg libzip libfreetype
+
+RUN docker-php-ext-install gd pdo pdo_mysql zip
+
+WORKDIR /var/www
+
+COPY --from=builder /var/www /var/www
+
+RUN addgroup -g 1000 appgroup && adduser -u 1000 -G appgroup -s /bin/sh -D appuser
+USER appuser
+
+EXPOSE 9000
+
+CMD ["php-fpm"]
