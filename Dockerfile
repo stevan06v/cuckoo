@@ -1,9 +1,13 @@
-FROM php:8.2-fpm AS builder
+FROM php:8.3-fpm AS builder
 
 RUN apt-get update && apt-get install -y \
     libpng-dev libjpeg-dev libfreetype6-dev libzip-dev unzip \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install gd pdo pdo_mysql zip
+
+RUN apt-get update && apt-get install -y \
+    libicu-dev \
+    && docker-php-ext-install intl
 
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
@@ -18,11 +22,18 @@ RUN curl -sL https://deb.nodesource.com/setup_20.x | bash - \
     && npm run build \
     && rm -rf node_modules
 
-FROM php:8.2-fpm-alpine
+FROM php:8.3-fpm-alpine
 
-RUN apk --no-cache add libpng libjpeg libzip libfreetype
+RUN apk --no-cache add \
+    libpng-dev \
+    jpeg-dev \
+    libzip-dev \
+    freetype-dev \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install gd pdo pdo_mysql zip
 
-RUN docker-php-ext-install gd pdo pdo_mysql zip
+RUN apk add --no-cache icu-dev \
+    && docker-php-ext-install intl
 
 WORKDIR /var/www
 
