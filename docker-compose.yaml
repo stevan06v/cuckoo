@@ -16,6 +16,13 @@ services:
       - db
     env_file:
       - .env
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
 
   db:
     image: mysql:8.0
@@ -32,6 +39,12 @@ services:
       - cuckoo-network
     ports:
       - "3306:3306"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
 
   web:
     image: nginx:alpine

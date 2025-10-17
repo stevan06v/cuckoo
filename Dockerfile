@@ -31,7 +31,9 @@ RUN apk --no-cache add \
 
 WORKDIR /var/www
 
-COPY --from=builder /var/www /var/www
+#COPY --from=builder /var/www /var/www
+COPY --from=builder /var/www/public /var/www/public
+COPY --from=builder /var/www/vendor /var/www/vendor
 
 RUN addgroup -g 1000 appgroup && adduser -u 1000 -G appgroup -s /bin/sh -D appuser
 USER appuser
