@@ -1,13 +1,9 @@
 FROM php:8.3-fpm AS builder
 
 RUN apt-get update && apt-get install -y \
-    libpng-dev libjpeg-dev libfreetype6-dev libzip-dev unzip \
+    libpng-dev libjpeg-dev libfreetype6-dev libzip-dev unzip libicu-dev \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install gd pdo pdo_mysql zip
-
-RUN apt-get update && apt-get install -y \
-    libicu-dev \
-    && docker-php-ext-install intl
+    && docker-php-ext-install gd pdo pdo_mysql zip intl
 
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
@@ -18,9 +14,9 @@ RUN composer install --no-dev --optimize-autoloader --no-interaction
 
 RUN curl -sL https://deb.nodesource.com/setup_20.x | bash - \
     && apt-get install -y nodejs \
-    && npm install --omit=dev \
+    && npm ci \
     && npm run build \
-    && rm -rf node_modules
+    && npm prune --production
 
 FROM php:8.3-fpm-alpine
 
@@ -29,11 +25,9 @@ RUN apk --no-cache add \
     jpeg-dev \
     libzip-dev \
     freetype-dev \
+    icu-dev \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install gd pdo pdo_mysql zip
-
-RUN apk add --no-cache icu-dev \
-    && docker-php-ext-install intl
+    && docker-php-ext-install gd pdo pdo_mysql zip intl
 
 WORKDIR /var/www
 
