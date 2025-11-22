@@ -253,3 +253,5 @@ dist
 .svelte-kit
 
 # End of https://www.toptal.com/developers/gitignore/api/laravel,node,jetbrains+all
+
+./db-data/*

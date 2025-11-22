@@ -1,0 +1,6 @@
+db-data
+.git
+.env.dev
+.env.example
+node_modules
+.gitignore
