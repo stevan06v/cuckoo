@@ -254,4 +254,4 @@ dist
 
 # End of https://www.toptal.com/developers/gitignore/api/laravel,node,jetbrains+all
 
-./db-data/*
+db-data
