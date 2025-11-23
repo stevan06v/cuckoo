@@ -29,8 +29,19 @@ services:
       - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
     networks:
       - cuckoo-network
+      - traefik
     depends_on:
       - app
+    labels:
+      - "traefik.http.middlewares.${ROUTER_NAME}-redirect.redirectscheme.scheme=https" 
+      - "traefik.enable=true"
+      - "traefik.http.routers.${ROUTER_NAME}.rule=Host(`${DOMAIN}`)${SECONDARY_DOMAIN:+ || Host(`${SECONDARY_DOMAIN}`)}"
+      - "traefik.http.routers.${ROUTER_NAME}.entrypoints=http"
+      - "traefik.http.routers.${ROUTER_NAME}.middlewares=${ROUTER_NAME}-redirect"
+      - "traefik.http.routers.${ROUTER_NAME}-secure.rule=Host(`${DOMAIN}`)${SECONDARY_DOMAIN:+ || Host(`${SECONDARY_DOMAIN}`)}"
+      - "traefik.http.routers.${ROUTER_NAME}-secure.entrypoints=https"
+      - "traefik.http.routers.${ROUTER_NAME}-secure.tls=true"
+      - "traefik.http.routers.${ROUTER_NAME}-secure.tls.certresolver=letsencrypt"
 
   db:
     image: mysql:8.0
@@ -56,3 +67,6 @@ services:
 networks:
   cuckoo-network:
     driver: bridge
+  traefik:            # internal name in Compose
+    external: true
+    name: ${TRAEFIK_NETWORK}   # real Docker network comes from .env
