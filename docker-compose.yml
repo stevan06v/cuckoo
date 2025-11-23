@@ -36,7 +36,7 @@ services:
     labels:
       - "traefik.http.middlewares.${ROUTER_NAME}-redirect.redirectscheme.scheme=https" 
       - "traefik.enable=true"
-      - "traefik.http.routers.${ROUTER_NAME}.rule=Host(`${DOMAIN}`) || Host(`${SECONDARY_DOMAIN}`)}"
+      - "traefik.http.routers.${ROUTER_NAME}.rule=Host(`${DOMAIN}`) || Host(`${SECONDARY_DOMAIN}`)"
       - "traefik.http.routers.${ROUTER_NAME}.entrypoints=http"
       - "traefik.http.routers.${ROUTER_NAME}.middlewares=${ROUTER_NAME}-redirect"
       - "traefik.http.routers.${ROUTER_NAME}-secure.rule=Host(`${DOMAIN}`) || Host(`${SECONDARY_DOMAIN}`)}"
