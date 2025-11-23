@@ -39,7 +39,7 @@ services:
       - "traefik.http.routers.${ROUTER_NAME}.rule=Host(`${DOMAIN}`) || Host(`${SECONDARY_DOMAIN}`)"
       - "traefik.http.routers.${ROUTER_NAME}.entrypoints=http"
       - "traefik.http.routers.${ROUTER_NAME}.middlewares=${ROUTER_NAME}-redirect"
-      - "traefik.http.routers.${ROUTER_NAME}-secure.rule=Host(`${DOMAIN}`) || Host(`${SECONDARY_DOMAIN}`)}"
+      - "traefik.http.routers.${ROUTER_NAME}-secure.rule=Host(`${DOMAIN}`) || Host(`${SECONDARY_DOMAIN}`)"
       - "traefik.http.routers.${ROUTER_NAME}-secure.entrypoints=https"
       - "traefik.http.routers.${ROUTER_NAME}-secure.tls=true"
       - "traefik.http.routers.${ROUTER_NAME}-secure.tls.certresolver=letsencrypt"
