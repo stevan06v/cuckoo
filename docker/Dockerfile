@@ -17,6 +17,8 @@ WORKDIR /var/www
 
 COPY . .
 
+RUN composer install --no-dev --optimize-autoloader --no-progress --no-interaction
+
 # Stage 2 Final small Image :))
 FROM php:8.3-fpm
 
